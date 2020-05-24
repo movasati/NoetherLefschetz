@@ -1,0 +1,105 @@
+
+ //Code 1----------------Main code for finding special and general pencils-----------
+ LIB "foliation.lib";
+int n=2; int d=6; int zb=10; int tru=2; 
+int gene=11; //--a generic coefficient;  
+int dhalf= d div 2; int d1; int d2; int s1; int s2; int m1; int m2;
+int i; int j; list ll; 
+list Periods; list lcycles; intvec besh; list pkom; list lMpij; int a1; int a2; 
+intvec mlist=d;  for (i=1;i<=n; i=i+1){mlist=mlist,d;}
+
+ring r=(0,z), (x(1..n+1)),dp;
+poly cp=cyclotomic(2*d); int degext=deg(cp) div deg(var(1));
+cp=subst(cp, x(1),z); minpoly =number(cp);
+list compo0; list compo1; list compo2; list compo3; list compo4; intvec cods; list dta;  int count;
+//--------for checking case by case define  the following and jump the loop of d1,d2,m1,m2,s1,s2---
+//--------d1=3; d2=3; s1=1; s2=1; m1=0; m2=0;  
+for (d1=1;d1<=dhalf; d1=d1+1)
+    {
+    for (d2=d1;d2<=dhalf ; d2=d2+1)
+        {
+        for (m1=0;m1<=d1; m1=m1+1)
+            {
+            for (m2=0;m2<=d2; m2=m2+1)
+                {
+                if (m1==0){a1=1;}else{a1=m1;}
+                if (m2==0){a2=1;}else{a2=m2;}
+                for (s1=a1;s1<=dhalf ; s1=s1+1)
+                    {
+                    for (s2=a2;s2<=dhalf ; s2=s2+1)
+                        {
+                        count=count+1;
+                        intvec(d1,d2), "*", intvec(s1,s2), "*",  intvec(m1,m2);
+                        ll=TwoCI(n,d,intvec(d1,d2),intvec(s1,s2),intvec(m1,m2));
+                        lcycles=ll[1]; besh=ll[2];
+                        Periods=list();
+                        for (i=1; i<=size(lcycles); i=i+1)
+                            {
+                            Periods=insert(Periods, 
+                            PeriodLinearCycle(mlist, lcycles[i][1], lcycles[i][2],par(1)), size(Periods));
+                            }
+                        pkom=list();          
+                        for (i=1; i<=size(besh)-1; i=i+1)
+                            { 
+                            for (j=besh[i]+1; j<=besh[i+1]-1; j=j+1)
+                                {  
+                                Periods[besh[i]]=Periods[besh[i]]+Periods[j];
+                                }
+                            pkom=insert(pkom, Periods[besh[i]], size(pkom));     
+                            }
+                        Periods=pkom;
+                        lMpij=list(); 
+                        for (i=1; i<=size(Periods); i=i+1)
+                            {
+                            lMpij=insert(lMpij, Matrixpij(mlist, Periods[i]), size(lMpij));
+                            }
+                        cods=rank(lMpij[1]), rank(lMpij[2]), rank(lMpij[1]+gene*lMpij[2]),
+                             rank(concat(transpose(lMpij[1]), transpose(lMpij[2])));
+                        dta=intvec(d1,d2), intvec(s1,s2), intvec(m1,m2), cods;
+                         
+                        if (cods[3]==binomial(d-1,3) and cods[3]<>cods[4])
+                           {compo0=insert(compo0, dta, size(compo0)); 
+                           }
+                        if (cods[3]==cods[4])
+                           {compo1=insert(compo1, dta, size(compo1)); 
+                            cods;
+                           }
+                        if (cods[3]<binomial(d-1,3) and cods[3]<>cods[4])
+                            {
+                            ll=SmoothReduced(mlist,tru, lcycles, intvec(1,-zb), intvec(zb,zb), besh,0); 
+                            if (size(ll[1])<>zb*(2*zb+1))
+                               {ll[1];
+                                dta= insert(dta, ll[1], size(dta));
+                                compo2=insert(compo2, dta, size(compo2));
+                               }
+                            else
+                               { 
+                               "All Smooth, Checking tru+1 reducedness!!!!!!!!!!!!!!!!!!!!tru=", tru+1;
+                                ll=SmoothReduced(mlist,tru+1, lcycles, intvec(1,-zb), intvec(zb,zb), besh,0);
+                                if (size(ll[1])<>zb*(2*zb+1))
+                                   {ll[1];
+                                    dta= insert(dta, ll[1], size(dta));
+                                    compo3=insert(compo3, dta, size(compo3));
+                                   }
+                                else
+                                    {
+                                    "All Smooth, Checking tru+2 reducedness!!!!!!!!!!!!!!!!!!!!tru=", tru+2;
+                                    ll=SmoothReduced(mlist,tru+2, lcycles, intvec(1,-zb), intvec(zb,zb), besh,0);
+                                    dta=insert(dta, ll[1], size(dta));
+                                    compo4=insert(compo4, dta, size(compo4));
+                                    }
+                               }
+                           }
+                "********************************************************************"; 
+}}}}}}//--closing the loops of d1,d2,m1,m2,s1,s2-----
+//---General pencil
+compo0; 
+//---Inclusion of two tangent spaces
+compo1;
+//---2-smooth cases but not all
+compo2;
+//---3-smooth cases but not all
+compo3; 
+//---4-smooth cases all
+compo4;
+count-size(compo0)-size(compo1)-size(compo2)-size(compo3)-size(compo4); 
